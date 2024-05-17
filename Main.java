@@ -54,6 +54,19 @@ public class Main {
         frame.add(panel);
 
         frame.setVisible(true);
+        
+        gerarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                        int tamanho = Integer.parseInt(tamanhoField.getText());
+                        String senha = Gerador.gerarSenha(tamanho);
+                        resultadoField.setText(senha);
+                } catch (NumberFormatException nfe){
+                    JOptionPane.showMessageDialog(frame, "Por favor, insira um número.");
+                }
+            }
+        });
     }
 }
 
