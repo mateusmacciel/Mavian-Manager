@@ -14,6 +14,76 @@ class Cofre extends JFrame {
     private JButton abrirCadastroButton;
     private JButton abrirGeradorButton;
 
+    public Cofre() {
+        setTitle("Cofre de Senhas");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 800);
+        setLocationRelativeTo(null);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.setBackground(new Color(0x17, 0x1B, 0x27));
+
+        Font font = new Font("Arial", Font.BOLD, 18);
+        Color textColor = Color.WHITE;
+
+        // Painel para os botões superiores
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new GridLayout(2, 1, 10, 10));
+        topPanel.setBackground(new Color(0x17, 0x1B, 0x27));
+
+        abrirCadastroButton = new JButton("Cadastrar Conta de Serviço");
+        abrirCadastroButton.setFont(font);
+        abrirCadastroButton.setForeground(textColor);
+        abrirCadastroButton.setBackground(new Color(0x00, 0x4d, 0xcc));
+        abrirCadastroButton.setPreferredSize(new Dimension(200, 50));
+        abrirCadastroButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose(); // Fecha a janela atual
+                new ContaServicoCadastro(); // Abre a janela de cadastro de serviço
+            }
+        });
+
+        abrirGeradorButton = new JButton("Gerador");
+        abrirGeradorButton.setFont(font);
+        abrirGeradorButton.setForeground(textColor);
+        abrirGeradorButton.setBackground(new Color(0x00, 0x4d, 0xcc));
+        abrirGeradorButton.setPreferredSize(new Dimension(200, 50));
+        abrirGeradorButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose(); // Fecha a janela atual
+                new Gerador(); // Abre a janela de cadastro de serviço
+            }
+        });
+
+        topPanel.add(abrirCadastroButton);
+        topPanel.add(abrirGeradorButton);
+
+        panel.add(topPanel, BorderLayout.NORTH);
+
+        textArea = new JTextArea();
+        textArea.setEditable(false);
+        textArea.setFont(font);
+        textArea.setForeground(textColor);
+        textArea.setBackground(new Color(0x17, 0x1B, 0x27));
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        consultarButton = new JButton("Consultar Contas");
+        consultarButton.setFont(font);
+        consultarButton.setForeground(textColor);
+        consultarButton.setBackground(new Color(0x00, 0x4d, 0xcc));
+        consultarButton.setPreferredSize(new Dimension(200, 50));
+        consultarButton.addActionListener(new ConsultarListener());
+
+        panel.add(consultarButton, BorderLayout.SOUTH);
+
+        add(panel);
+        setVisible(true);
+    }
+
     private class ConsultarListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             consultarContas();
