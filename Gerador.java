@@ -122,8 +122,4 @@ class Gerador extends JFrame {
 
         return sb.toString();
     }
-
-    public static void main(String[] args) {
-        new Gerador();
-    }
 }
