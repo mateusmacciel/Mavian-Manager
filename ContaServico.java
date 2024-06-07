@@ -1,11 +1,15 @@
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Base64;
 
 class ContaServicoCadastro {
     private JFrame frame;
@@ -13,8 +17,11 @@ class ContaServicoCadastro {
     private JPasswordField senhaField;
     private JTextField siteField;
     private JButton cadastrarButton;
+    private SecretKeySpec chaveAES;
 
     public ContaServicoCadastro() {
+        this.chaveAES = Criptografia.lerChave("chave.txt");
+
         frame = new JFrame("Cadastro de Conta de Serviço");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 800);
@@ -106,10 +113,14 @@ class ContaServicoCadastro {
             String site = siteField.getText();
 
             try {
-                cadastrarConta(email, senha, site);
+                // Criptografar a senha
+                String senhaCriptografada = criptografarSenha(senha);
+                cadastrarConta(email, senhaCriptografada, site);
                 JOptionPane.showMessageDialog(frame, "Cadastro realizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Erro ao cadastrar conta: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
 
@@ -131,6 +142,13 @@ class ContaServicoCadastro {
             connection.close();
         }
 
-        public void cadastrarConta(String email, String hashSenha) throws SQLException { }
+        private String criptografarSenha(String senha) throws Exception {
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, chaveAES);
+            byte[] senhaCriptografadaBytes = cipher.doFinal(senha.getBytes());
+            return Base64.getEncoder().encodeToString(senhaCriptografadaBytes);
+        }
+
+        public void cadastrarConta(String usuario, String senha) {}
     }
 }
