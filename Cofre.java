@@ -8,17 +8,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-class Cofre extends JFrame {
+class Cofre {
+    private JFrame frame;
     private JTextArea textArea;
     private JButton consultarButton;
     private JButton abrirCadastroButton;
     private JButton abrirGeradorButton;
 
     public Cofre() {
-        setTitle("Cofre de Senhas");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 800);
-        setLocationRelativeTo(null);
+        frame = new JFrame("Cofre de Senhas");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 800);
+        frame.setLocationRelativeTo(null);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -27,7 +28,6 @@ class Cofre extends JFrame {
         Font font = new Font("Arial", Font.BOLD, 18);
         Color textColor = Color.WHITE;
 
-        // Painel para os botões superiores
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new GridLayout(2, 1, 10, 10));
         topPanel.setBackground(new Color(0x17, 0x1B, 0x27));
@@ -38,10 +38,9 @@ class Cofre extends JFrame {
         abrirCadastroButton.setBackground(new Color(0x00, 0x4d, 0xcc));
         abrirCadastroButton.setPreferredSize(new Dimension(200, 50));
         abrirCadastroButton.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                dispose(); // Fecha a janela atual
-                new ContaServicoCadastro(); // Abre a janela de cadastro de serviço
+                frame.dispose();
+                new ContaServicoCadastro();
             }
         });
 
@@ -51,10 +50,9 @@ class Cofre extends JFrame {
         abrirGeradorButton.setBackground(new Color(0x00, 0x4d, 0xcc));
         abrirGeradorButton.setPreferredSize(new Dimension(200, 50));
         abrirGeradorButton.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                dispose(); // Fecha a janela atual
-                new Gerador(); // Abre a janela de cadastro de serviço
+                frame.dispose();
+                new Gerador();
             }
         });
 
@@ -80,8 +78,8 @@ class Cofre extends JFrame {
 
         panel.add(consultarButton, BorderLayout.SOUTH);
 
-        add(panel);
-        setVisible(true);
+        frame.add(panel);
+        frame.setVisible(true);
     }
 
     private class ConsultarListener implements ActionListener {
@@ -118,12 +116,8 @@ class Cofre extends JFrame {
                 statement.close();
                 connection.close();
             } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(Cofre.this, "Erro ao consultar as contas no cofre: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                System.out.println("Ocorreu algum erro ao tentar consultar suas contas.");
             }
         }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new Cofre());
     }
 }
