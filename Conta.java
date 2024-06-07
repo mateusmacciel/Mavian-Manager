@@ -1,11 +1,6 @@
+import java.sql.SQLException;
+
 abstract class Conta {
-    protected String usuario;
-    protected String senha;
-
-    public Conta(String usuario, String senha){
-        this.usuario = usuario;
-        this.senha = senha;
-    }
-
-    public abstract void mostrarConta();
+    public abstract void cadastrarConta(String usuario, String senhaHah) throws SQLException;
+    public abstract void cadastrarConta(String email, String senha, String site) throws SQLException;
 }
