@@ -4,23 +4,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
 
-class Gerador extends JFrame {
+class Gerador {
+    private JFrame frame;
     private JTextField tamanhoField;
     private JPasswordField resultadoField;
 
     public Gerador() {
-        // Configurações da janela
-        setTitle("Gerador");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(500, 800);
-        setLocationRelativeTo(null);
+        frame = new JFrame("Gerador");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 800);
+        frame.setLocationRelativeTo(null);
 
-        // Painel principal
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(15, 1, 10, 10));
         panel.setBackground(new Color(0x17, 0x1B, 0x27));
 
-        // Componentes da interface
         JLabel label = new JLabel("Tamanho da senha:");
         tamanhoField = new JTextField();
 
@@ -38,12 +36,12 @@ class Gerador extends JFrame {
         tamanhoField.setFont(font);
         tamanhoField.setForeground(textColor);
         tamanhoField.setOpaque(false);
-        tamanhoField.setBorder(BorderFactory.createLineBorder(Color.WHITE)); // Adiciona uma borda para visibilidade
+        tamanhoField.setBorder(BorderFactory.createLineBorder(Color.WHITE));
 
-            gerarButton.setFont(font);
-            gerarButton.setForeground(textColor);
-            gerarButton.setBackground(new Color(0x00, 0x4d, 0xcc));
-            gerarButton.setPreferredSize(new Dimension(150, 50));
+        gerarButton.setFont(font);
+        gerarButton.setForeground(textColor);
+        gerarButton.setBackground(new Color(0x00, 0x4d, 0xcc));
+        gerarButton.setPreferredSize(new Dimension(150, 50));
 
         resultadoLabel.setFont(font);
         resultadoLabel.setForeground(textColor);
@@ -53,7 +51,6 @@ class Gerador extends JFrame {
         resultadoField.setForeground(textColor);
         resultadoField.setBackground(Color.DARK_GRAY);
 
-        // Botão de alternância de visibilidade da senha
         JButton toggleVisibilityButton = new JButton("👁");
         toggleVisibilityButton.setFont(new Font("Arial", Font.PLAIN, 18));
         toggleVisibilityButton.setPreferredSize(new Dimension(50, 50));
@@ -67,27 +64,25 @@ class Gerador extends JFrame {
         abrirCadastroButton.setForeground(textColor);
         abrirCadastroButton.setBackground(new Color(0x00, 0x4d, 0xcc));
         abrirCadastroButton.setPreferredSize(new Dimension(200, 50));
-        panel.add(abrirCadastroButton);
 
         JButton abrirCofreButton = new JButton("Cofre");
         abrirCofreButton.setFont(font);
         abrirCofreButton.setForeground(textColor);
         abrirCofreButton.setBackground(new Color(0x00, 0x4d, 0xcc));
+
+        panel.add(abrirCadastroButton);
         panel.add(abrirCofreButton);
 
-
         abrirCofreButton.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                dispose(); // Fecha a janela atual
-                new Cofre(); // Abre a janela de cadastro de serviço
+                frame.dispose();
+                new Cofre();
             }
         });
 
         toggleVisibilityButton.addActionListener(new ActionListener() {
             private boolean isPasswordVisible = false;
 
-            @Override
             public void actionPerformed(ActionEvent e) {
                 if (isPasswordVisible) {
                     resultadoField.setEchoChar('*');
@@ -101,41 +96,42 @@ class Gerador extends JFrame {
         });
 
         abrirCadastroButton.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
-                dispose(); // Fecha a janela atual
-                new ContaServicoCadastro(); // Abre a janela de cadastro de serviço
+                frame.dispose();
+                new ContaServicoCadastro();
             }
         });
 
-        // Adiciona componentes ao painel
         panel.add(label);
         panel.add(tamanhoField);
         panel.add(gerarButton);
-        panel.add(new JLabel());  // Filler
+        panel.add(new JLabel());
         panel.add(resultadoLabel);
         panel.add(resultadoField);
-        panel.add(toggleVisibilityButton);  // Adicione o botão de alternância de visibilidade
+        panel.add(toggleVisibilityButton);
 
-        // Adiciona painel à janela
-        add(panel);
-        setVisible(true);
+        frame.add(panel);
+        frame.setVisible(true);
 
-        // Listener do botão "Gerar senha"
         gerarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     int tamanho = Integer.parseInt(tamanhoField.getText());
                     String senha = gerarSenha(tamanho);
                     resultadoField.setText(senha);
-                } catch (NumberFormatException nfe) {
-                    JOptionPane.showMessageDialog(Gerador.this, "Por favor, insira um número.");
+                } catch (GeradorException ge) {
+                    JOptionPane.showMessageDialog(frame, ge.getMessage());
                 }
             }
         });
     }
-    
-    public static String gerarSenha(int tamanho) {
+
+    public static String gerarSenha(int tamanho) throws GeradorException {
+
+        if (tamanho <= 0) {
+            throw new GeradorException("O tamanho deve ser maior que zero.");
+        }
+
         String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
                 "abcdefghijklmnopqrstuvwxyz" +
                 "0123456789" +
@@ -153,3 +149,14 @@ class Gerador extends JFrame {
         return sb.toString();
     }
 }
+
+class GeradorException extends Exception {
+    public GeradorException(String message) {
+        super(message);
+    }
+
+    public GeradorException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+
