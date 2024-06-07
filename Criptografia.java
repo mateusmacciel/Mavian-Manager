@@ -53,4 +53,8 @@ class Criptografia {
         }
         return sb.toString();
     }
+
+    protected String descriptografarSenha(String senhaCriptografada) throws Exception{
+        return "";
+    }
 }
