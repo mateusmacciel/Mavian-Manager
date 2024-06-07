@@ -1,12 +1,17 @@
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+import java.util.Base64;
 import org.mindrot.jbcrypt.BCrypt;
 
 class ContaMestraCadastro {
@@ -15,8 +20,10 @@ class ContaMestraCadastro {
     private JPasswordField senhaField;
     private JPasswordField confirmarSenhaField;
     private JButton cadastrarButton;
+    private SecretKeySpec chaveAES;
 
     public ContaMestraCadastro() {
+        this.chaveAES = Criptografia.lerChave("chave.txt");
         frame = new JFrame("Cadastro de Conta Mestra");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 800);
@@ -92,16 +99,25 @@ class ContaMestraCadastro {
             }
 
             try {
-                String senhaHash = BCrypt.hashpw(senha, BCrypt.gensalt());
-                cadastrarConta(usuario, senhaHash);
+                String senhaCriptografada = criptografarSenha(senha);
+                cadastrarConta(usuario, senhaCriptografada);
                 frame.dispose();
                 new ContaMestraLogin();
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(frame, "Erro ao cadastrar usuário: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
             }
         }
 
-        public void cadastrarConta(String usuario, String senhaHash) throws SQLException {
+        private String criptografarSenha(String senha) throws Exception {
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, chaveAES);
+            byte[] senhaCriptografadaBytes = cipher.doFinal(senha.getBytes());
+            return Base64.getEncoder().encodeToString(senhaCriptografadaBytes);
+        }
+
+        public void cadastrarConta(String usuario, String senhaCriptografada) throws SQLException {
             String url = "jdbc:postgresql://localhost:5432/meudb";
             String dbUsuario = "postgres";
             String dbSenha = "mateus";
@@ -111,7 +127,7 @@ class ContaMestraCadastro {
             String sql = "INSERT INTO mavian.usuario (usuario, senha) VALUES (?, ?)";
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, usuario);
-            statement.setString(2, senhaHash);
+            statement.setString(2, senhaCriptografada);
             statement.executeUpdate();
 
             statement.close();
@@ -183,19 +199,21 @@ class ContaMestraLogin {
             String senha = new String(senhaField.getPassword());
 
             try {
-                if (validarCredenciais(usuario, senha)) {
+                SecretKeySpec chaveAES = Criptografia.lerChave("chave.txt");
+
+                if (validarCredenciais(usuario, senha, chaveAES)) {
                     JOptionPane.showMessageDialog(frame, "Login bem-sucedido!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                     frame.dispose();
                     new Gerador();
                 } else {
                     JOptionPane.showMessageDialog(frame, "Usuário ou senha incorretos", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(frame, "Erro ao validar usuário: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception exc) {
+                JOptionPane.showMessageDialog(frame, "Erro ao validar usuário: " + exc.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
         }
 
-        public boolean validarCredenciais(String usuario, String senha) throws SQLException {
+        public boolean validarCredenciais(String usuario, String senha, SecretKeySpec chaveAES) throws Exception {
             String url = "jdbc:postgresql://localhost:5432/meudb";
             String dbUsuario = "postgres";
             String dbSenha = "mateus";
@@ -210,8 +228,14 @@ class ContaMestraLogin {
             boolean existe = false;
 
             if (resultSet.next()) {
-                String hashedSenha = resultSet.getString("senha");
-                if (BCrypt.checkpw(senha, hashedSenha)) {
+                String senhaCriptografada = resultSet.getString("senha");
+
+                Cipher cipher = Cipher.getInstance("AES");
+                cipher.init(Cipher.DECRYPT_MODE, chaveAES);
+                byte[] senhaBytes = cipher.doFinal(Base64.getDecoder().decode(senhaCriptografada));
+                String senhaDescriptografada = new String(senhaBytes);
+
+                if (senha.equals(senhaDescriptografada)) {
                     existe = true;
                 }
             }
@@ -224,4 +248,3 @@ class ContaMestraLogin {
         }
     }
 }
-
