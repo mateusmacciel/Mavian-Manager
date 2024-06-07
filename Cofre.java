@@ -7,6 +7,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.util.Base64;
+import java.util.ArrayList;
 
 class Cofre {
     private JFrame frame;
@@ -14,8 +18,13 @@ class Cofre {
     private JButton consultarButton;
     private JButton abrirCadastroButton;
     private JButton abrirGeradorButton;
+    private SecretKeySpec chaveAES;
+    private ArrayList<String> contas;
 
     public Cofre() {
+        this.chaveAES = Criptografia.lerChave("chave.txt");
+        this.contas = new ArrayList<>();
+
         frame = new JFrame("Cofre de Senhas");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 800);
@@ -82,7 +91,7 @@ class Cofre {
         frame.setVisible(true);
     }
 
-    private class ConsultarListener implements ActionListener {
+    private class ConsultarListener extends Criptografia implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             consultarContas();
         }
@@ -98,26 +107,46 @@ class Cofre {
                 String sql = "SELECT email, senha, site FROM mavian.contas";
                 PreparedStatement statement = connection.prepareStatement(sql);
                 ResultSet resultSet = statement.executeQuery();
-
-                StringBuilder stringBuilder = new StringBuilder();
+                contas.clear();
 
                 while (resultSet.next()) {
                     String email = resultSet.getString("email");
                     String senhaHash = resultSet.getString("senha");
                     String site = resultSet.getString("site");
-                    stringBuilder.append("Email: ").append(email).append("\n");
-                    stringBuilder.append("Senha Hash: ").append(senhaHash).append("\n");
-                    stringBuilder.append("Site: ").append(site).append("\n\n");
+
+                    String senhaDescriptografada = descriptografarSenha(senhaHash);
+
+                    contas.add("Email: " + email + "\n" +
+                            "Senha: " + senhaDescriptografada + "\n" +
+                            "Site: " + site + "\n\n");
                 }
 
-                textArea.setText(stringBuilder.toString());
+                atualizarTextArea();
 
                 resultSet.close();
                 statement.close();
                 connection.close();
             } catch (SQLException ex) {
                 System.out.println("Ocorreu algum erro ao tentar consultar suas contas.");
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
+
+        protected String descriptografarSenha(String senhaCriptografada) throws Exception {
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, chaveAES);
+            byte[] senhaBytes = cipher.doFinal(Base64.getDecoder().decode(senhaCriptografada));
+            return new String(senhaBytes);
+        }
+    }
+
+    private void atualizarTextArea() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String conta : contas) {
+            stringBuilder.append(conta);
+        }
+        textArea.setText(stringBuilder.toString());
     }
 }
+
