@@ -1,6 +1,7 @@
 import java.io.*;
 import java.security.*;
 import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 class Criptografia {
@@ -17,13 +18,17 @@ class Criptografia {
             byte[] chaveCodificada = chave.getEncoded();
             SecretKeySpec chaveSecreta = new SecretKeySpec(chaveCodificada, algoritmo);
 
-            FileOutputStream fileOut = new FileOutputStream(nomeArquivo);
-            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-            objectOut.writeObject(chaveSecreta);
-            objectOut.close();
-            fileOut.close();
+            byte[] iv = new byte[16];
+            SecureRandom random = new SecureRandom();
+            random.nextBytes(iv);
 
-            System.out.println("Chave AES gravada com sucesso.");
+            try (FileOutputStream fileOut = new FileOutputStream(nomeArquivo);
+                 ObjectOutputStream objectOut = new ObjectOutputStream(fileOut)) {
+                objectOut.writeObject(chaveSecreta);
+                objectOut.writeObject(iv);
+            }
+
+            System.out.println("Chave AES e IV gravados com sucesso.");
         } catch (NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();
         }
@@ -31,15 +36,14 @@ class Criptografia {
 
     public static SecretKeySpec lerChave(String nomeArquivo) {
         SecretKeySpec chave = null;
-        try {
-            FileInputStream fileIn = new FileInputStream(nomeArquivo);
-            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+        byte[] iv = null;
+        try (FileInputStream fileIn = new FileInputStream(nomeArquivo);
+             ObjectInputStream objectIn = new ObjectInputStream(fileIn)) {
             chave = (SecretKeySpec) objectIn.readObject();
-            objectIn.close();
-            fileIn.close();
-
+            iv = (byte[]) objectIn.readObject();
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
             System.out.println("Chave lida do arquivo: " + bytesParaString(chave.getEncoded()));
-
+            System.out.println("IV lido do arquivo: " + bytesParaString(ivSpec.getIV()));
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -52,9 +56,5 @@ class Criptografia {
             sb.append(String.format("%02X", b));
         }
         return sb.toString();
-    }
-
-    protected String descriptografarSenha(String senhaCriptografada) throws Exception{
-        return "";
     }
 }
