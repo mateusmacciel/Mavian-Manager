@@ -66,6 +66,12 @@ class ContaMestraCadastro {
         cadastrarButton.setBackground(new Color(0x00, 0x4d, 0xcc));
         cadastrarButton.setPreferredSize(new Dimension(150, 50));
 
+        JButton abrirLoginButton = new JButton("Login");
+        abrirLoginButton.setFont(font);
+        abrirLoginButton.setForeground(textColor);
+        abrirLoginButton.setBackground(new Color(0x00, 0x4d, 0xcc));
+        abrirLoginButton.setPreferredSize(new Dimension(200, 50));
+        
         panel.add(usuarioLabel);
         panel.add(usuarioField);
         panel.add(senhaLabel);
@@ -74,6 +80,15 @@ class ContaMestraCadastro {
         panel.add(confirmarSenhaField);
         panel.add(new JLabel());
         panel.add(cadastrarButton);
+        panel.add(new JLabel());
+        panel.add(abrirLoginButton);
+
+        abrirLoginButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                frame.dispose();
+                new ContaMestraLogin();
+            }
+        });
 
         frame.add(panel);
 
