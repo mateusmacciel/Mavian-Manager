@@ -1,12 +1,4 @@
 # Mavian Manager
 
-Mavian Manager é um gerenciador de senha.
+Mavian Manager é um gerenciador de senhas.
 
-## Descrição
-
-PJBL Programação Orientada a Objetos.
-
-## Autores
-
-- [Mateus](https://github.com/mateusmacciel)
-- [Ana](https://github.com/kelmerz)
